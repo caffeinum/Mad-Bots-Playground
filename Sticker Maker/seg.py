@@ -22,7 +22,8 @@ class DeepLabModel(object):
     self.graph = tf.Graph()
 
     graph_def = None
-    graph_def = tf.GraphDef.FromString(open(tarball_path + "/frozen_inference_graph.pb", "rb").read()) 
+    graph_def = tf.GraphDef.FromString(
+        open(f"{tarball_path}/frozen_inference_graph.pb", "rb").read()) 
 
     if graph_def is None:
       raise RuntimeError('Cannot find inference graph in tar archive.')
@@ -56,7 +57,7 @@ class DeepLabModel(object):
     end = datetime.datetime.now()
 
     diff = end - start
-    print("Time taken to evaluate segmentation is : " + str(diff))
+    print(f"Time taken to evaluate segmentation is : {str(diff)}")
 
     return resized_image, seg_map
 
@@ -87,20 +88,20 @@ if len(sys.argv) > 3 and sys.argv[3] == "1":
   modelType = "xception_model"
 
 MODEL = DeepLabModel(modelType)
-print('model loaded successfully : ' + modelType)
+print(f'model loaded successfully : {modelType}')
 
 def run_visualization(filepath):
   """Inferences DeepLab model and visualizes result."""
   try:
-  	print("Trying to open : " + sys.argv[1])
-  	# f = open(sys.argv[1])
-  	jpeg_str = open(filepath, "rb").read()
-  	orignal_im = Image.open(BytesIO(jpeg_str))
+    print(f"Trying to open : {sys.argv[1]}")
+    # f = open(sys.argv[1])
+    jpeg_str = open(filepath, "rb").read()
+    orignal_im = Image.open(BytesIO(jpeg_str))
   except IOError:
-    print('Cannot retrieve image. Please check file: ' + filepath)
+    print(f'Cannot retrieve image. Please check file: {filepath}')
     return
 
-  print('running deeplab on image %s...' % filepath)
+  print(f'running deeplab on image {filepath}...')
   resized_im, seg_map = MODEL.run(orignal_im)
 
   # vis_segmentation(resized_im, seg_map)

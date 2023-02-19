@@ -29,23 +29,24 @@ def download(pool_sema: threading.Semaphore, url: str, output_dir: str):
         request=urllib.request.Request(url,None,urlopenheader)
         image=urllib.request.urlopen(request).read()
         if not imghdr.what(None, image):
-            print('FAIL: Invalid image, not saving ' + filename)
+            print(f'FAIL: Invalid image, not saving {filename}')
             return
 
         md5_key = hashlib.md5(image).hexdigest()
         if md5_key in image_md5s:
-            print('FAIL: Image is a duplicate of ' + image_md5s[md5_key] + ', not saving ' + filename)
+            print(
+                f'FAIL: Image is a duplicate of {image_md5s[md5_key]}, not saving {filename}'
+            )
             return
 
         image_md5s[md5_key] = filename
 
-        imagefile=open(os.path.join(output_dir, filename),'wb')
-        imagefile.write(image)
-        imagefile.close()
-        print("OK: " + filename)
+        with open(os.path.join(output_dir, filename),'wb') as imagefile:
+            imagefile.write(image)
+        print(f"OK: {filename}")
         tried_urls.append(url)
     except Exception as e:
-        print("FAIL: " + filename)
+        print(f"FAIL: {filename}")
     finally:
         in_progress.remove(filename)
         pool_sema.release()
@@ -54,7 +55,10 @@ def fetch_images_from_keyword(pool_sema: threading.Semaphore, keyword: str, outp
     current = 0
     last = ''
     while True:
-        request_url='https://www.bing.com/images/async?q=' + urllib.parse.quote_plus(keyword) + '&first=' + str(current) + '&count=35&adlt=' + adlt + '&qft=' + ('' if filters is None else filters)
+        request_url = (
+            f'https://www.bing.com/images/async?q={urllib.parse.quote_plus(keyword)}&first={str(current)}&count=35&adlt={adlt}&qft='
+            + ('' if filters is None else filters)
+        )
         request=urllib.request.Request(request_url,None,headers=urlopenheader)
         response=urllib.request.urlopen(request)
         html = response.read().decode('utf8')
@@ -75,11 +79,10 @@ def fetch_images_from_keyword(pool_sema: threading.Semaphore, keyword: str, outp
         time.sleep(0.1)
 
 def backup_history(*args):
-    download_history = open(os.path.join(output_dir, 'download_history.pickle'), 'wb')
-    pickle.dump(tried_urls,download_history)
-    copied_image_md5s = dict(image_md5s)  #We are working with the copy, because length of input variable for pickle must not be changed during dumping
-    pickle.dump(copied_image_md5s, download_history)
-    download_history.close()
+    with open(os.path.join(output_dir, 'download_history.pickle'), 'wb') as download_history:
+        pickle.dump(tried_urls,download_history)
+        copied_image_md5s = dict(image_md5s)  #We are working with the copy, because length of input variable for pickle must not be changed during dumping
+        pickle.dump(copied_image_md5s, download_history)
     print('history_dumped')
     if args:
         exit(0)
@@ -104,16 +107,12 @@ if __name__ == "__main__":
     output_dir_origin = output_dir
     signal.signal(signal.SIGINT, backup_history)
     try:
-        download_history = open(os.path.join(output_dir, 'download_history.pickle'), 'rb')
-        tried_urls=pickle.load(download_history)
-        image_md5s=pickle.load(download_history)
-        download_history.close()
+        with open(os.path.join(output_dir, 'download_history.pickle'), 'rb') as download_history:
+            tried_urls=pickle.load(download_history)
+            image_md5s=pickle.load(download_history)
     except (OSError, IOError):
         tried_urls=[]
-    if adult_filter:
-        adlt = ''
-    else:
-        adlt = 'off'
+    adlt = '' if adult_filter else 'off'
     if args.adult_filter_off:
         adlt = 'off'
     elif args.adult_filter_on:
@@ -125,9 +124,9 @@ if __name__ == "__main__":
         try:
             inputFile=open(args.search_file)
         except (OSError, IOError):
-            print("Couldn't open file {}".format(args.search_file))
+            print(f"Couldn't open file {args.search_file}")
             exit(1)
-        for keyword in inputFile.readlines():
+        for keyword in inputFile:
             output_sub_dir = os.path.join(output_dir_origin, keyword.strip().replace(' ', '_'))
             if not os.path.exists(output_sub_dir):
                 os.makedirs(output_sub_dir)
