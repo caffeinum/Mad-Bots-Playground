@@ -43,19 +43,24 @@ def handle(message, i=0):
         print(message.forward_from)
         file_id = bot.get_user_profile_photos(message.forward_from.id).photos[0][0].file_id
         file_path = bot.get_file(file_id).file_path
-        link = 'https://api.telegram.org/file/bot{}/{}'.format(token, file_path)
-        tmp_name = '{}.png'.format(message.forward_from.first_name)
+        link = f'https://api.telegram.org/file/bot{token}/{file_path}'
+        tmp_name = f'{message.forward_from.first_name}.png'
         urlretrieve(link, tmp_name)
         name = message.forward_from.first_name
         text = message.text
-        filename = '{}.png'.format(name)
+        filename = f'{name}.png'
         ironman = Image.open(filename, 'r').resize((70,70))
         text_img = Image.new('RGBA', (512,120), (0, 0, 0, 0))
         text_img.paste(ironman, (0,0))
         fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
         d = ImageDraw.Draw(text_img)
-        d.text((40,12), "         {}\n         {}".format(name,break_if_too_long(text)), font=fnt, fill=(0, 0, 0))
-        name = 'stickers/curr{}.png'.format(random.randint(0,400))
+        d.text(
+            (40, 12),
+            f"         {name}\n         {break_if_too_long(text)}",
+            font=fnt,
+            fill=(0, 0, 0),
+        )
+        name = f'stickers/curr{random.randint(0, 400)}.png'
         i += 1
         text_img.save(name, format="png")
         bot.send_photo(chat_id=message.chat.id, photo=open(name, 'rb'))
@@ -63,10 +68,10 @@ def handle(message, i=0):
         try:
             print('photo recieved')
             file_path = bot.get_file(message.photo[1].file_id).file_path
-            link = 'https://api.telegram.org/file/bot{}/{}'.format(token, file_path)
-            tmp_name = '{}{}.png'.format('file_' + message.from_user.first_name,random.randint(24,42))
+            link = f'https://api.telegram.org/file/bot{token}/{file_path}'
+            tmp_name = f'file_{message.from_user.first_name}{random.randint(24, 42)}.png'
             urlretrieve(link, tmp_name)
-            print('saved at {}'.format(tmp_name))
+            print(f'saved at {tmp_name}')
             delete_background(tmp_name)
             cut_into_sticker(tmp_name)
             print('alalala')
@@ -78,14 +83,19 @@ def handle(message, i=0):
                 print('-'*80)
                 print(message.from_user)
                 text = message.text
-                filename = '{}.png'.format(name)
+                filename = f'{name}.png'
                 ironman = Image.open(filename, 'r').resize((70,70))
                 text_img = Image.new('RGBA', (512,120), (0, 0, 0, 0))
                 text_img.paste(ironman, (0,0))
                 fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
                 d = ImageDraw.Draw(text_img)
-                d.text((40,12), "         {}\n         {}".format(name,break_if_too_long(text)), font=fnt, fill=(0, 0, 0))
-                name = 'stickers/curr{}.png'.format(random.randint(0,400))
+                d.text(
+                    (40, 12),
+                    f"         {name}\n         {break_if_too_long(text)}",
+                    font=fnt,
+                    fill=(0, 0, 0),
+                )
+                name = f'stickers/curr{random.randint(0, 400)}.png'
                 i += 1
                 text_img.save(name, format="png")
                 bot.send_photo(chat_id=message.chat.id, photo=open(name, 'rb'))

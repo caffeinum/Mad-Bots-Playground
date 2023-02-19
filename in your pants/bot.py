@@ -14,7 +14,9 @@ session = requests.Session()
 i = 0
 
 def download_picture(text):
-    os.system('python downloader.py -s {} -o pics --limit 1'.format(text.replace(' ', '+')))
+    os.system(
+        f"python downloader.py -s {text.replace(' ', '+')} -o pics --limit 1"
+    )
     
 def get_picture(text):
     response = session.get(
@@ -44,8 +46,13 @@ def put_into_pants(text):
     # background.paste(back,(0,0))
     fnt = ImageFont.truetype('/Library/Fonts/Impact.ttf', 30)
     d = ImageDraw.Draw(back)
-    d.text((100,420), "    {}\n    У ТЕБЯ В ШТАНАХ".format(text.upper()), font=fnt, fill=(0, 0, 0))
-    name = 'stickers/curr{}.png'.format(random.randint(0,400))
+    d.text(
+        (100, 420),
+        f"    {text.upper()}\n    У ТЕБЯ В ШТАНАХ",
+        font=fnt,
+        fill=(0, 0, 0),
+    )
+    name = f'stickers/curr{random.randint(0, 400)}.png'
     back.save('result.png', format='png')
     os.system('rm -r pics/*')
     
@@ -80,16 +87,16 @@ def handle(message, i=0):
         print('direct recieved')
         i += 1
         text = message.text.split(' ')[0]
-        
+
         bot.send_photo(chat_id=message.chat.id, photo=open(name, 'rb'))
     except:
         try:
             print('photo recieved')
             file_path = bot.get_file(message.photo[1].file_id).file_path
-            link = 'https://api.telegram.org/file/bot{}/{}'.format(token, file_path)
-            tmp_name = '{}{}.png'.format('file_' + message.from_user.first_name,random.randint(24,42))
+            link = f'https://api.telegram.org/file/bot{token}/{file_path}'
+            tmp_name = f'file_{message.from_user.first_name}{random.randint(24, 42)}.png'
             urlretrieve(link, tmp_name)
-            print('saved at {}'.format(tmp_name))
+            print(f'saved at {tmp_name}')
             delete_background(tmp_name)
             cut_into_sticker(tmp_name)
             print('alalala')
